@@ -2,7 +2,10 @@ package com.irsystem;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Task1 {
+/**
+ * Controls collections in applications directories and adds functionality
+ */
+public class CollectionController {
 
     /**
      * Creates a collection of divided documents out of a text document
@@ -14,15 +17,15 @@ public class Task1 {
             List<List<String>> collection = divideDocument(fc);
 
             for (List<String> document : collection) {
-                String filename = getStandardizedFilename(document.get(0), document.get(1));
+                String filename = FileController.getStandardizedFilename(document.get(0), document.get(1));
                 document.remove(0);
-                fc.createTextFile("./collection_original/" + filename + ".txt", document);
+                FileController.createTextFile(GlobalVariables._ORIGINALDIRECTORY + "/" + filename + ".txt", document);
             }
         } catch (Exception e) {
             System.out.println(e);
         }
 
-        System.out.println("Task Finished with Success");
+        System.out.println("Success: Created collections out of documents");
     }
 
     /**
@@ -70,24 +73,10 @@ public class Task1 {
             }
 
             collection.add(document);
+            fc.bufferedReader.close();
             return collection;
         } catch (Exception e) {
             throw new Exception(e);
         }
-    }
-
-    /**
-     * Creates a standardized file name
-     * All lower case letters and spaces replaces with underscores
-     * @param number Number usually referring to the line position
-     * @param name Name of the file
-     * @return Returns standardized name
-     */
-    private static String getStandardizedFilename(String number, String name){
-        name = name.toLowerCase();                                        // Sets all letters to lower case
-        name = name.trim();                                               // Removes all spaces at the beginning and end
-        name = name.replaceAll(" ", "_");               // Replaces all spaces with underscores
-        name = name.replaceAll("[\\\\/:*?\"<>|]", "");  // Removes all illegal characters
-        return number + "_" + name;
     }
 }
