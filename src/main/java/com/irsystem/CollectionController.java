@@ -21,6 +21,7 @@ public class CollectionController {
                 document.remove(0);
                 FileController.createTextFile(GlobalVariables._ORIGINALDIRECTORY + "/" + filename + ".txt", document);
             }
+
         } catch (Exception e) {
             System.out.println(e);
         }

@@ -32,6 +32,25 @@ public class App {
             case "--extract-collection":
                 CollectionController.createDocumentCollection(args.get(1));
                 DocumentController.removeStopWords();
+
+                try {
+                    InvertedList invertedIndex = new InvertedList();
+                    invertedIndex.indexCollection(GlobalVariables._ORIGINALDIRECTORY);
+                    invertedIndex.indexCollection(GlobalVariables._NO_STOPWORDDIRECTORY);
+                } catch (Exception err) {
+                    System.out.println(err);
+                }
+                break;
+            case "--test":
+                Stemmer s = new Stemmer(args.get(1));
+                s.step1a();
+                s.step1b();
+                s.step1c();
+                s.step2();
+                s.step3();
+                s.step4();
+                s.step5a();
+                System.out.println(s.getWord());
                 break;
             default:
                 try {
@@ -39,6 +58,7 @@ public class App {
                     String searchMode = "";
                     String documentSource = "";
                     String query = "";
+                    boolean stemming = false;
 
                     int argPos;
 
@@ -51,8 +71,11 @@ public class App {
                     argPos = args.indexOf("--query");
                     query = args.get(argPos + 1).replace("\"", "");
 
+                    if (args.indexOf("--stemming") != -1)
+                        stemming = true;
+
                     argPos = args.indexOf("--documents");
-                    switch(args.get(argPos + 1)){
+                    switch (args.get(argPos + 1)) {
                         case "\"original\"":
                             documentSource = GlobalVariables._ORIGINALDIRECTORY;
                             break;
@@ -63,11 +86,14 @@ public class App {
                             System.out.println("Exception: Illegal Flag");
                     }
 
-                    switch(model){
+                    switch (model) {
                         case "\"bool\"":
-                            switch(searchMode){
+                            switch (searchMode) {
                                 case "\"linear\"":
-                                    SearchController.linearSearch(query, documentSource);
+                                    SearchController.linearSearch(query, documentSource, stemming);
+                                    break;
+                                    case "\"inverted\"":
+                                    SearchController.invertedListSearch(query, documentSource, stemming);
                                     break;
                                 default:
                                     System.out.println("Exception: Illegal Flag");

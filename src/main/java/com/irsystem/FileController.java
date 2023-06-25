@@ -85,6 +85,16 @@ public class FileController {
     }
 
     /**
+     * Returns all files from a directory
+     * @param directoryPath Path to the directory
+     * @return Returns all files from a directory as Array
+     */
+    public static String[] getFilenamesFromDirectory(String directoryPath) {
+        File directory = new File(directoryPath);
+        return directory.list();
+    }
+
+    /**
      * Creates a standardized file name
      * All lower case letters and spaces replaces with underscores
      * @param number Number usually referring to the line position
