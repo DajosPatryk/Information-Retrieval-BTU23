@@ -28,6 +28,11 @@ public class App {
             args.add(arg.toLowerCase());
         }
 
+        // Stopwatch Variables
+        long start;
+        long elapsedTime;
+        double elapsedTimeInMilliSeconds;
+
         switch (args.get(0)) {
             case "--extract-collection":
                 CollectionController.createDocumentCollection(args.get(1));
@@ -90,10 +95,22 @@ public class App {
                         case "\"bool\"":
                             switch (searchMode) {
                                 case "\"linear\"":
+                                    start = System.nanoTime();
+
                                     SearchController.linearSearch(query, documentSource, stemming);
+
+                                    elapsedTime = System.nanoTime() - start;
+                                    elapsedTimeInMilliSeconds = elapsedTime / 1_000_000.0;
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms");
                                     break;
                                     case "\"inverted\"":
+                                    start = System.nanoTime();
+
                                     SearchController.invertedListSearch(query, documentSource, stemming);
+
+                                    elapsedTime = System.nanoTime() - start;
+                                    elapsedTimeInMilliSeconds = elapsedTime / 1_000_000.0;
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms");
                                     break;
                                 default:
                                     System.out.println("Exception: Illegal Flag");
