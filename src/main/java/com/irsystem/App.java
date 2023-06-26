@@ -33,6 +33,13 @@ public class App {
         long elapsedTime;
         double elapsedTimeInMilliSeconds;
 
+        // Query Variables
+        String[] parsedQuery;
+        String operator;
+        String[] queries;
+        List<String> result;
+        EvaluationController ec = new EvaluationController();
+
         switch (args.get(0)) {
             case "--extract-collection":
                 CollectionController.createDocumentCollection(args.get(1));
@@ -97,20 +104,42 @@ public class App {
                                 case "\"linear\"":
                                     start = System.nanoTime();
 
-                                    SearchController.linearSearch(query, documentSource, stemming);
+                                    // Parsing Query
+                                    parsedQuery = SearchController.parseQuery(query);
+                                    operator = parsedQuery[0];
+                                    queries = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
 
+                                    // Launch Search
+                                    result = SearchController.linearSearch(queries, operator, documentSource, stemming);
+
+                                    // Stop Timer
                                     elapsedTime = System.nanoTime() - start;
                                     elapsedTimeInMilliSeconds = elapsedTime / 1_000_000.0;
-                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms");
+
+                                    // Evaluate
+                                    ec.evaluate(queries, operator, result);
+
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision() + ",R=" + ec.getRecall());
                                     break;
-                                    case "\"inverted\"":
+                                case "\"inverted\"":
                                     start = System.nanoTime();
 
-                                    SearchController.invertedListSearch(query, documentSource, stemming);
+                                    // Parsing Query
+                                    parsedQuery = SearchController.parseQuery(query);
+                                    operator = parsedQuery[0];
+                                    queries = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
 
+                                    // Launch Search
+                                    result = SearchController.invertedListSearch(queries, operator, documentSource, stemming);
+
+                                    // Stop Timer
                                     elapsedTime = System.nanoTime() - start;
                                     elapsedTimeInMilliSeconds = elapsedTime / 1_000_000.0;
-                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms");
+
+                                    // Evaluate
+                                    ec.evaluate(queries, operator, result);
+
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision() + ",R=" + ec.getRecall());
                                     break;
                                 default:
                                     System.out.println("Exception: Illegal Flag");

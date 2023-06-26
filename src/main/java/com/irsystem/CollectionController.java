@@ -38,12 +38,13 @@ public class CollectionController {
      */
     private static List<List<String>> divideDocument(FileController fc) throws Exception{
         String line;
-        long linePos = 1;
+        long docPos = 1;
         List<List<String>> collection = new ArrayList<List<String>>();
         List<String> document = new ArrayList<String>();
-        document.add("0" + String.valueOf(linePos));  // Writes number of the starting line for the first document
-        int blankLineCounter = 0;   // Counts the number of blank lines in a row
+        document.add("0" + String.valueOf(docPos));  // Writes number of the starting line for the first document
+        docPos++;
 
+        int blankLineCounter = 0;   // Counts the number of blank lines in a row
         try {
             while((line = fc.bufferedReader.readLine()) != null){   // Reads each line of the document
 
@@ -56,12 +57,13 @@ public class CollectionController {
                         collection.add(document);
                         document = new ArrayList<String>();
 
-                        if(linePos < 10){   // Sets a leading 0 for numbers < 10
-                            document.add("0" + String.valueOf(linePos));
+                        if(docPos < 10){   // Sets a leading 0 for numbers < 10
+                            document.add("0" + String.valueOf(docPos));
                         } else{
-                            document.add(String.valueOf(linePos));
+                            document.add(String.valueOf(docPos));
                         }
                         document.add(line);
+                        docPos++;
                     }
                 } else if(line.isBlank()){     // If line is blank, skips line and iterates counter
                     blankLineCounter++;
@@ -70,7 +72,6 @@ public class CollectionController {
 
                     document.add(line);
                 }
-                linePos++;
             }
 
             collection.add(document);

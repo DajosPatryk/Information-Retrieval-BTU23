@@ -11,6 +11,8 @@ import java.util.regex.Pattern;
  */
 public class SearchController {
 
+
+
     /**
      * Performs linear search with query and files directory
      * 
@@ -18,16 +20,13 @@ public class SearchController {
      * @param documentsSource Files directory
      * @param stemming        Use stemmed words
      */
-    public static void linearSearch(String query, String documentsSource, boolean stemming) {
+    public static List<String> linearSearch(String[] queries, String operator, String documentsSource, boolean stemming) throws Exception {
         try {
-            String[] parsedQuery = parseQuery(query);
-            String operator = parsedQuery[0];
-            String[] parsedQueryStrings = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
-
-            List<String> result = doBooleanLinearSearch(parsedQueryStrings, operator, documentsSource, stemming);
+            List<String> result = doBooleanLinearSearch(queries, operator, documentsSource, stemming);
             writeOutput(result);
+            return result;
         } catch (Exception e) {
-            System.out.println(e);
+            throw new Exception(e);
         }
     }
 
@@ -38,16 +37,13 @@ public class SearchController {
      * @param documentsSource Files directory
      * @param stemming        Use stemmed words
      */
-    public static void invertedListSearch(String query, String documentsSource, boolean stemming) {
+    public static List<String> invertedListSearch(String[] queries, String operator, String documentsSource, boolean stemming) throws Exception {
         try {
-            String[] parsedQuery = parseQuery(query);
-            String operator = parsedQuery[0];
-            String[] parsedQueryStrings = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
-
-            List<String> result = doInvertedListSearch(parsedQueryStrings, operator, documentsSource, stemming);
+            List<String> result = doInvertedListSearch(queries, operator, documentsSource, stemming);
             writeOutput(result);
+            return result;
         } catch (Exception e) {
-            System.out.println(e);
+            throw new Exception(e);
         }
     }
 
