@@ -119,7 +119,8 @@ public class App {
                                     // Evaluate
                                     ec.evaluate(queries, operator, result);
 
-                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision() + ",R=" + ec.getRecall());
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision()
+                                            + ",R=" + ec.getRecall());
                                     break;
                                 case "\"inverted\"":
                                     start = System.nanoTime();
@@ -130,7 +131,8 @@ public class App {
                                     queries = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
 
                                     // Launch Search
-                                    result = SearchController.invertedListSearch(queries, operator, documentSource, stemming);
+                                    result = SearchController.invertedListSearch(queries, operator, documentSource,
+                                            stemming);
 
                                     // Stop Timer
                                     elapsedTime = System.nanoTime() - start;
@@ -139,10 +141,38 @@ public class App {
                                     // Evaluate
                                     ec.evaluate(queries, operator, result);
 
-                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision() + ",R=" + ec.getRecall());
+                                    System.out.println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision()
+                                            + ",R=" + ec.getRecall());
                                     break;
                                 default:
                                     System.out.println("Exception: Illegal Flag");
+                            }
+                            break;
+                        case "\"vector\"":
+                            try {
+                                start = System.nanoTime();
+
+                                // Parsing Query
+                                parsedQuery = SearchController.parseQuery(query);
+                                operator = parsedQuery[0];
+                                queries = Arrays.copyOfRange(parsedQuery, 1, parsedQuery.length);
+
+                                // Launch Search
+                                result = SearchController.vectorSpaceSearch(queries, operator, documentSource,
+                                        stemming);
+
+                                // Stop Timer
+                                elapsedTime = System.nanoTime() - start;
+                                elapsedTimeInMilliSeconds = elapsedTime / 1_000_000.0;
+
+                                // Evaluate
+                                ec.evaluate(queries, operator, result);
+
+                                System.out
+                                        .println("T=" + elapsedTimeInMilliSeconds + "ms,P=" + ec.getPrecision() + ",R="
+                                                + ec.getRecall());
+                            } catch (Exception e) {
+                                e.printStackTrace();
                             }
                             break;
                         default:

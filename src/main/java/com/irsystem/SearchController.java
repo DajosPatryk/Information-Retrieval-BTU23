@@ -5,13 +5,12 @@ import java.sql.Array;
 import java.util.*;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 /**
  * Controls search functionality
  */
 public class SearchController {
-
-
 
     /**
      * Performs linear search with query and files directory
@@ -20,7 +19,8 @@ public class SearchController {
      * @param documentsSource Files directory
      * @param stemming        Use stemmed words
      */
-    public static List<String> linearSearch(String[] queries, String operator, String documentsSource, boolean stemming) throws Exception {
+    public static List<String> linearSearch(String[] queries, String operator, String documentsSource, boolean stemming)
+            throws Exception {
         try {
             List<String> result = doBooleanLinearSearch(queries, operator, documentsSource, stemming);
             writeOutput(result);
@@ -37,9 +37,28 @@ public class SearchController {
      * @param documentsSource Files directory
      * @param stemming        Use stemmed words
      */
-    public static List<String> invertedListSearch(String[] queries, String operator, String documentsSource, boolean stemming) throws Exception {
+    public static List<String> invertedListSearch(String[] queries, String operator, String documentsSource,
+            boolean stemming) throws Exception {
         try {
             List<String> result = doInvertedListSearch(queries, operator, documentsSource, stemming);
+            writeOutput(result);
+            return result;
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
+    }
+
+    /**
+     * Performs inverted list search with query and files directory
+     * 
+     * @param query           Query input
+     * @param documentsSource Files directory
+     * @param stemming        Use stemmed words
+     */
+    public static List<String> vectorSpaceSearch(String[] queries, String operator, String documentsSource,
+            boolean stemming) throws Exception {
+        try {
+            List<String> result = doVectorSpaceSearch(queries, operator, documentsSource, stemming);
             writeOutput(result);
             return result;
         } catch (Exception e) {
@@ -140,12 +159,12 @@ public class SearchController {
     }
 
     private static List<String> doInvertedListSearch(String[] query, String operator, String filesDirectory,
-        boolean stemming) throws Exception {
+            boolean stemming) throws Exception {
         List<String> foundFiles = new ArrayList<String>();
 
         InvertedList invertedList = new InvertedList();
-        Map<String, List<String>> index;
-        if(stemming){
+        Map<String, Map<String, double[]>> index;
+        if (stemming) {
             invertedList.readDocument(filesDirectory + "/" + GlobalVariables._INVERTEDINDEXSTEMMEDPATH);
             index = invertedList.getIndex();
         } else {
@@ -156,35 +175,85 @@ public class SearchController {
         List<List<String>> filenameList = new ArrayList<List<String>>();
         for (String queryParam : query) {
             try {
-                if(index.containsKey(queryParam)) filenameList.add(index.get(queryParam));
+                if (index.containsKey(queryParam))
+                    filenameList.add(new ArrayList<String>(index.get(queryParam).keySet()));
+                else
+                    filenameList.add(new ArrayList<String>());
             } catch (Exception e) {
                 throw new Exception(e);
             }
         }
 
         if (operator != null) {
-                    switch (operator) {
-                        case "&":
-                            filenameList.get(0).retainAll(filenameList.get(1));
-                            foundFiles = filenameList.get(0);
-                            break;
-                        case "|":
-                            foundFiles.addAll(filenameList.get(0));
-                            foundFiles.addAll(filenameList.get(1));
-                            break;
-                        case "-":
-                            List<String> filenames = new ArrayList<>(Arrays.asList(FileController.getFilenamesFromDirectory(filesDirectory)));
-                            if(filenameList.size() != 0) filenames.removeAll(filenameList.get(0));
-                            filenames.remove(GlobalVariables._INVERTEDINDEXPATH);
-                            filenames.remove(GlobalVariables._INVERTEDINDEXSTEMMEDPATH);
-                            foundFiles = filenames;
-                            break;
-                    }
-                } else {
+            switch (operator) {
+                case "&":
+                    filenameList.get(0).retainAll(filenameList.get(1));
                     foundFiles = filenameList.get(0);
-                }
+                    break;
+                case "|":
+                    foundFiles.addAll(filenameList.get(0));
+                    foundFiles.addAll(filenameList.get(1));
+                    break;
+                case "-":
+                    List<String> filenames = new ArrayList<>(
+                            Arrays.asList(FileController.getFilenamesFromDirectory(filesDirectory)));
+                    if (filenameList.size() != 0)
+                        filenames.removeAll(filenameList.get(0));
+                    filenames.remove(GlobalVariables._INVERTEDINDEXPATH);
+                    filenames.remove(GlobalVariables._INVERTEDINDEXSTEMMEDPATH);
+                    foundFiles = filenames;
+                    break;
+            }
+        } else {
+            foundFiles = filenameList.get(0);
+        }
 
         return foundFiles;
+    }
+
+    /**
+     * Im so bored of these maths already.
+     * The code isn't optimized.
+     * 
+     * @param query
+     * @param operator
+     * @param filesDirectory
+     * @param stemming
+     * @return
+     * @throws Exception
+     */
+    private static List<String> doVectorSpaceSearch(String[] query, String operator, String filesDirectory,
+            boolean stemming) throws Exception {
+        try {
+            List<String> foundFiles = doInvertedListSearch(query, operator, filesDirectory, stemming);
+
+            InvertedList invertedList = new InvertedList();
+            Map<String, Map<String, double[]>> index;
+            if (stemming) {
+                invertedList.readDocument(filesDirectory + "/" + GlobalVariables._INVERTEDINDEXSTEMMEDPATH);
+                index = invertedList.getIndex();
+            } else {
+                invertedList.readDocument(filesDirectory + "/" + GlobalVariables._INVERTEDINDEXPATH);
+                index = invertedList.getIndex();
+            }
+            invertedList.initN(filesDirectory);
+
+            if (operator != "-") {
+                Map<String, double[]> similarityList = VectorSpace.calculateSimilarity(query, invertedList.N, index,
+                        foundFiles);
+
+                List<String> sortedFiles = similarityList.entrySet()
+                        .stream()
+                        .sorted((e1, e2) -> Double.compare(e2.getValue()[0], e1.getValue()[0]))
+                        .map(Map.Entry::getKey)
+                        .collect(Collectors.toList());
+                return sortedFiles;
+            } else
+                return foundFiles;
+
+        } catch (Exception e) {
+            throw new Exception(e);
+        }
     }
 
     /**
